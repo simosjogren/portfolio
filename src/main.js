@@ -12,6 +12,19 @@ import { createEducationObject } from './sectionObjects/educationObject.js'
 import { createPersonalityObject } from './sectionObjects/personalityObject.js'
 import { createGithubExperienceObject } from './sectionObjects/githubExperienceObject.js'
 import { createWorkExperienceObject } from './sectionObjects/workExperienceObject.js'
+import { initControlPanel } from './platformSettings/mobileSettings.js';
+
+function isMobileDevice() {
+    return /Mobi|Android/i.test(navigator.userAgent);;
+}
+
+console.log("Using mobile device: ", isMobileDevice());
+if (isMobileDevice() === false) {
+    // Initialize the control panel when the page loads
+    const ctrlPanel = document.getElementById('ctrlBtnArea');
+    ctrlPanel.style.display = 'none';
+    window.onload = initControlPanel;
+}
 
 const IS_DEBUG_MODE = true;
 
@@ -21,7 +34,13 @@ const cameraOffset = {
     z: 10  // Distance behind the object
 };
 
-const speed = 0.4;  // Adjust the character's speed
+const beginningRotation = 0;
+let currentRotation = beginningRotation; // Current rotation of the rocket in radians
+let rotationOffset = -Math.PI / 2; // Offset for the initial rocket orientation
+let rotationSpeedFront = 0.05; // How quickly the rocket rotates towards the target angle
+let rotationSpeedBack = 0.025;
+let forwardSpeed = 0.5; // Speed when moving forward
+let backwardSpeed = 0.25; // Speed when moving backward
 const followSpeed = 0.05; // Adjust the speed for following the character
 
 // Basic scene setup
@@ -71,14 +90,6 @@ const init = () => {
     // If its debug mode, lets draw the help axises
     if (IS_DEBUG_MODE) helpAxes(scene);
 };
-
-const beginningRotation = 0;
-let currentRotation = beginningRotation; // Current rotation of the rocket in radians
-let rotationOffset = -Math.PI / 2; // Offset for the initial rocket orientation
-let rotationSpeedFront = 0.05; // How quickly the rocket rotates towards the target angle
-let rotationSpeedBack = 0.025;
-let forwardSpeed = 0.5; // Speed when moving forward
-let backwardSpeed = 0.25; // Speed when moving backward
 
 const movement = {
     up: false,

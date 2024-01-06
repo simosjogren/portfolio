@@ -1,2 +1,37 @@
-body { margin: 0; }
-canvas { display: block; }
+body {
+    overflow: hidden; /* Keeps the page from scrolling */
+}
+
+#modelstuff {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: hidden; /* Prevents scroll bars on your 3D model container */
+}
+
+#modelstuff canvas {
+    cursor: crosshair; /* Styling the cursor for the canvas */
+}
+
+#ctrlBtnArea {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    font-size: 2.5em; /* Adjust if the buttons are too big or small */
+}
+
+#ctrlBtnArea .ctrlBtn {
+    width: 100%; /* Ensures buttons use the full width of their container */
+    padding: 10px; /* Adds some space inside the buttons */
+    margin: 2px; /* Adds space between buttons */
+    background-color: #24890d; /* Green background for buttons */
+    color: #fff; /* White text for buttons */
+    border: none; /* Removes the border */
+    border-radius: 5px; /* Slightly rounded corners for the buttons */
+}
+
+#ctrlBtnArea td {
+    padding: 0; /* Removes padding inside the table cells */
+}
