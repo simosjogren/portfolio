@@ -15,18 +15,6 @@ import { createWorkExperienceObject } from './sectionObjects/workExperienceObjec
 
 const IS_DEBUG_MODE = true;
 
-const beginningRotation = -Math.PI/2;
-let currentRotation = beginningRotation; // Current rotation of the rocket in radians
-let targetRotation = beginningRotation; // Target rotation based on key presses
-let rotationSpeed = 0.05; // How quickly the rocket rotates towards the target angle
-
-const movement = {
-    up: false,
-    down: false,
-    left: false,
-    right: false
-};
-
 const cameraOffset = {
     x: 0,
     y: 5,  // Height above the object
@@ -84,34 +72,39 @@ const init = () => {
     if (IS_DEBUG_MODE) helpAxes(scene);
 };
 
-const updateTargetRotation = () => {
-    if (movement.left && movement.up) {
-        targetRotation = beginningRotation + (Math.PI / 4);  // 45 degrees to the left from the beginning
-    } else if (movement.right && movement.up) {
-        targetRotation = beginningRotation - (Math.PI / 4);  // 45 degrees to the right from the beginning
-    } else if (movement.left && movement.down) {
-        targetRotation = beginningRotation + (3 * Math.PI / 4);  // 135 degrees to the left from the beginning
-    } else if (movement.right && movement.down) {
-        targetRotation = beginningRotation - (3 * Math.PI / 4);  // 135 degrees to the right from the beginning
-    } else if (movement.left) {
-        targetRotation = beginningRotation + (Math.PI / 2);  // 90 degrees to the left from the beginning
-    } else if (movement.right) {
-        targetRotation = beginningRotation - (Math.PI / 2);  // 90 degrees to the right from the beginning
-    } else if (movement.up) {
-        targetRotation = beginningRotation;  // No rotation from the beginning (upwards)
-    } else if (movement.down) {
-        targetRotation = (beginningRotation + Math.PI) % (2 * Math.PI);  // 180 degrees from the beginning (downwards)
-    }
+const beginningRotation = 0;
+let currentRotation = beginningRotation; // Current rotation of the rocket in radians
+let rotationOffset = -Math.PI / 2; // Offset for the initial rocket orientation
+let rotationSpeedFront = 0.05; // How quickly the rocket rotates towards the target angle
+let rotationSpeedBack = 0.025;
+let forwardSpeed = 0.5; // Speed when moving forward
+let backwardSpeed = 0.25; // Speed when moving backward
 
-    // Normalize the target rotation to ensure the shortest path
-    let rotationDiff = targetRotation - character.rotation.y;
-    if (rotationDiff > Math.PI) {
-        targetRotation -= 2 * Math.PI;
-    } else if (rotationDiff < -Math.PI) {
-        targetRotation += 2 * Math.PI;
-    }
+const movement = {
+    up: false,
+    down: false,
+    left: false,
+    right: false
 };
 
+const updateRotation = () => {
+    if (movement.up) {
+        if (movement.left) {
+            currentRotation += rotationSpeedFront; // Rotate to the left when moving forward
+        } else if (movement.right) {
+            currentRotation -= rotationSpeedFront; // Rotate to the right when moving forward
+        }
+    }
+    if (movement.down) {
+        if (movement.left) {
+            currentRotation -= rotationSpeedBack; // Rotate to the left when moving forward
+        } else if (movement.right) {
+            currentRotation += rotationSpeedBack; // Rotate to the right when moving forward
+        }
+    }
+    // Normalize the rotation between 0 and 2*PI
+    currentRotation = (currentRotation + 2 * Math.PI) % (2 * Math.PI);
+};
 
 const animate = () => {
     requestAnimationFrame(animate);
@@ -119,51 +112,36 @@ const animate = () => {
     let moveX = 0;
     let moveZ = 0;
 
-    // Determine direction
-    if (movement.up) moveZ = -1;
-    if (movement.down) moveZ = 1;
-    if (movement.left) moveX = -1;
-    if (movement.right) moveX = 1;
-
-    // Normalize the movement vector
-    const length = Math.sqrt(moveX * moveX + moveZ * moveZ);
-    if (length > 0) {
-        moveX /= length;
-        moveZ /= length;
+    // Determine direction and speed based on key presses
+    if (movement.up) {
+        moveZ = Math.sin(currentRotation + rotationOffset) * forwardSpeed;
+        moveX = -Math.cos(currentRotation + rotationOffset) * forwardSpeed;
+    } else if (movement.down) {
+        moveZ = -Math.sin(currentRotation + rotationOffset) * backwardSpeed;
+        moveX = Math.cos(currentRotation + rotationOffset) * backwardSpeed;
     }
 
-    // Update rocket position
-    character.position.x += moveX * speed;
-    character.position.z += moveZ * speed;
+    // Update rotation based on current movement
+    updateRotation();
 
-    // Update target rotation based on current movement
-    updateTargetRotation();
+    // Update rocket position and rotation
+    character.position.x += moveX;
+    character.position.z += moveZ;
+    character.rotation.y = currentRotation + rotationOffset;
 
-    // Check if any movement keys are pressed
-    const isMoving = movement.left || movement.right || movement.up || movement.down;
-
-    // Gradually rotate the rocket towards the target rotation only if there's movement
-    if (isMoving) {
-        if (character.rotation.y < targetRotation) {
-            character.rotation.y = Math.min(character.rotation.y + rotationSpeed, targetRotation);
-            currentRotation = character.rotation.y;  // Update the currentRotation
-        } else if (character.rotation.y > targetRotation) {
-            character.rotation.y = Math.max(character.rotation.y - rotationSpeed, targetRotation);
-            currentRotation = character.rotation.y;  // Update the currentRotation
-        }
-    }
-
-    // Desired camera position
+    // Calculate the desired position of the camera
+    const relativeCameraOffset = new THREE.Vector3(cameraOffset.x, cameraOffset.y, cameraOffset.z);
+    const cameraOffsetRotated = relativeCameraOffset.applyAxisAngle(new THREE.Vector3(0,1,0), currentRotation);
     const desiredPosition = new THREE.Vector3(
-        character.position.x + cameraOffset.x,
-        character.position.y + cameraOffset.y,
-        character.position.z + cameraOffset.z
+        character.position.x + cameraOffsetRotated.x,
+        character.position.y + cameraOffsetRotated.y,
+        character.position.z + cameraOffsetRotated.z
     );
 
     // Smoothly interpolate the camera's position towards the desired position
     camera.position.lerp(desiredPosition, followSpeed);
 
-    // Make the camera look at the character
+    // Make the camera look at the rocket
     camera.lookAt(character.position);
 
     // Render the scene
