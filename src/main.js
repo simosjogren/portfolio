@@ -12,19 +12,11 @@ import { createEducationObject } from './sectionObjects/educationObject.js'
 import { createPersonalityObject } from './sectionObjects/personalityObject.js'
 import { createGithubExperienceObject } from './sectionObjects/githubExperienceObject.js'
 import { createWorkExperienceObject } from './sectionObjects/workExperienceObject.js'
-import { initControlPanel } from './platformSettings/mobileSettings.js';
+import { initControlPanel, toggleControlPanel } from './platformSettings/mobileSettings.js';
 
-function isMobileDevice() {
-    return /Mobi|Android/i.test(navigator.userAgent);;
-}
-
-console.log("Using mobile device: ", isMobileDevice());
-if (isMobileDevice() === false) {
-    // Initialize the control panel when the page loads
-    const ctrlPanel = document.getElementById('ctrlBtnArea');
-    ctrlPanel.style.display = 'none';
-    window.onload = initControlPanel;
-}
+// Event listener for the toggle button
+document.getElementById('toggleControls').addEventListener('click', toggleControlPanel);
+document.getElementById('ctrlBtnArea').style.display = 'none';  // Lets hide it by default.
 
 const IS_DEBUG_MODE = true;
 
@@ -97,6 +89,9 @@ const movement = {
     left: false,
     right: false
 };
+
+// Initialize the control panel when the page loads
+window.onload = initControlPanel(movement);
 
 const updateRotation = () => {
     if (movement.up) {

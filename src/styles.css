@@ -1,5 +1,10 @@
 body {
     overflow: hidden; /* Keeps the page from scrolling */
+    -webkit-user-select: none; /* Disable text selection in Safari/Chrome */
+    -moz-user-select: none; /* Disable text selection in Firefox */
+    -ms-user-select: none; /* Disable text selection in IE/Edge */
+    user-select: none; /* Standard syntax, disables text selection */
+    -webkit-touch-callout: none; /* Disable the callout, link preview, etc., on touch in iOS Safari */
 }
 
 #modelstuff {
@@ -13,25 +18,61 @@ body {
 
 #modelstuff canvas {
     cursor: crosshair; /* Styling the cursor for the canvas */
+    touch-action: manipulation; /* Improves touch interaction by disabling double-tap zoom etc. */
 }
 
 #ctrlBtnArea {
     position: absolute;
-    right: 0;
-    bottom: 0;
-    font-size: 2.5em; /* Adjust if the buttons are too big or small */
+    right: 20px; /* Right margin for a bit of space */
+    bottom: 100px; /* Positioning above the toggle button with more space */
+    font-size: 1.5em; /* Adjust the size of the buttons */
+    display: none; /* Initially hidden */
+    text-align: center; /* Center-align the buttons */
 }
 
 #ctrlBtnArea .ctrlBtn {
-    width: 100%; /* Ensures buttons use the full width of their container */
+    width: 150px; /* Fixed width for each button */
+    height: 150px; /* Fixed height for each button */
     padding: 10px; /* Adds some space inside the buttons */
-    margin: 2px; /* Adds space between buttons */
-    background-color: #24890d; /* Green background for buttons */
+    margin: -0px; /* Adds space between buttons */
+    background-color: #4CAF50; /* Green background for buttons */
     color: #fff; /* White text for buttons */
     border: none; /* Removes the border */
-    border-radius: 5px; /* Slightly rounded corners for the buttons */
+    border-radius: 50%; /* Circular buttons */
+    cursor: pointer; /* Changes cursor to pointer when hovering over the buttons */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow for depth */
+    outline: none; /* Removes the outline on focus */
+    font-size: 1.2em;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight color in Safari/Chrome */
 }
 
-#ctrlBtnArea td {
-    padding: 0; /* Removes padding inside the table cells */
+#ctrlBtnArea .ctrlBtn:active {
+    background-color: #367C39; /* Slightly darker background when button is pressed */
+}
+
+#btnReset {
+    background-color: #ff4136; /* A red color for the stop button */
+}
+
+#btnReset:active {
+    background-color: #c3271d; /* Slightly darker red when button is pressed */
+}
+
+#toggleControls {
+    position: absolute;
+    right: 10px;
+    bottom: 10px; /* Positioned at the bottom right corner with margin */
+    padding: 10px 20px;
+    background-color: #333; /* Dark background for the toggle button */
+    color: #fff; /* White text for the button */
+    border: none;
+    border-radius: 5px; /* Rounded corners for the button */
+    cursor: pointer; /* Changes cursor to pointer when hovering over the button */
+    font-size: 1.2em;
+    outline: none; /* Removes the outline on focus */
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight color in Safari/Chrome */
+}
+
+#toggleControls:hover {
+    background-color: #444; /* Slightly lighter background on hover */
 }

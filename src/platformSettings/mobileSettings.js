@@ -1,6 +1,6 @@
 
 
-export function initControlPanel() {
+export function initControlPanel(movement) {
     const controls = {
       btnCntrlU: false,
       btnCntrlD: false,
@@ -10,11 +10,37 @@ export function initControlPanel() {
   
     // Function to set the control state
     function setControlState(control, state) {
+      switch (control) {
+        case 'btnCntrlU':
+          movement.up = state;  // Simplified the logic
+          break;  // Break statement to prevent fall-through
+        case 'btnCntrlD':
+          movement.down = state;
+          break;
+        case 'btnCntrlL':
+          movement.left = !state;
+          movement.right = state;
+          break;
+        case 'btnCntrlR':
+          movement.left = state;
+          movement.right = !state;
+          break;
+      }
       controls[control] = state;
-      console.log(control, state)
-      // You can call your movement function here
-      // moveCharacter();
     }
+
+      // Function to reset all movement
+    function resetMovement() {
+      for (let key in movement) {
+          movement[key] = false;
+      }
+    }
+
+    // Add event listeners for the reset button
+    document.getElementById('btnReset').addEventListener('mousedown', resetMovement);
+    document.getElementById('btnReset').addEventListener('touchstart', resetMovement);
+      
+    
   
     // Add event listeners for each button
     document.getElementById('btnCntrlU').addEventListener('mousedown', () => setControlState('btnCntrlU', true));
@@ -37,5 +63,16 @@ export function initControlPanel() {
     document.getElementById('btnCntrlR').addEventListener('touchstart', () => setControlState('btnCntrlR', true));
     document.getElementById('btnCntrlR').addEventListener('touchend', () => setControlState('btnCntrlR', false));
   
-    // Repeat for btnCntrlD, btnCntrlL, btnCntrlR...
+}
+
+// Function to toggle the visibility of the control panel
+export function toggleControlPanel() {
+  const ctrlPanel = document.getElementById('ctrlBtnArea');
+  if (ctrlPanel) {
+      if (ctrlPanel.style.display === 'none' || ctrlPanel.style.display === '') {
+          ctrlPanel.style.display = 'block'; // Show the controls
+      } else {
+          ctrlPanel.style.display = 'none'; // Hide the controls
+      }
+  }
 }
