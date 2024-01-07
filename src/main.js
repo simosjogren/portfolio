@@ -6,7 +6,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 // import { createSimpleCharacter } from './characterObject/makeCharacter.js'
 import { createRocket } from './characterObject/makeRocket.js'
 import { helpAxes } from './devTools/helpingAxes.js';
-import { initializeMovementController } from './characterObject/characterMovement.js'
+import { initializeMovementController, updateMomentum, updateRotation } from './characterObject/characterMovement.js'
 
 import { createEducationObject } from './sectionObjects/educationObject.js'
 import { createPersonalityObject } from './sectionObjects/personalityObject.js'
@@ -25,15 +25,6 @@ const cameraOffset = {
     y: 5,  // Height above the object
     z: 10  // Distance behind the object
 };
-
-const beginningRotation = 0;
-let currentRotation = beginningRotation; // Current rotation of the rocket in radians
-let rotationOffset = -Math.PI / 2; // Offset for the initial rocket orientation
-let rotationSpeedFront = 0.05; // How quickly the rocket rotates towards the target angle
-let rotationSpeedBack = 0.025;
-let forwardSpeed = 0.5; // Speed when moving forward
-let backwardSpeed = 0.25; // Speed when moving backward
-const followSpeed = 0.05; // Adjust the speed for following the character
 
 // Basic scene setup
 let scene, camera, renderer, character, controls;
@@ -93,24 +84,19 @@ const movement = {
 // Initialize the control panel when the page loads
 window.onload = initControlPanel(movement);
 
-const updateRotation = () => {
-    if (movement.up) {
-        if (movement.left) {
-            currentRotation += rotationSpeedFront; // Rotate to the left when moving forward
-        } else if (movement.right) {
-            currentRotation -= rotationSpeedFront; // Rotate to the right when moving forward
-        }
-    }
-    if (movement.down) {
-        if (movement.left) {
-            currentRotation -= rotationSpeedBack; // Rotate to the left when moving forward
-        } else if (movement.right) {
-            currentRotation += rotationSpeedBack; // Rotate to the right when moving forward
-        }
-    }
-    // Normalize the rotation between 0 and 2*PI
-    currentRotation = (currentRotation + 2 * Math.PI) % (2 * Math.PI);
-};
+const beginningRotation = 0;
+let currentRotation = beginningRotation; // Current rotation of the rocket in radians
+let rotationSpeedFront = 0.05;
+let rotationSpeedBack = 0.025;
+let rotationOffset = -Math.PI / 2; // Offset for the initial rocket orientation
+let forwardSpeed = 0.5; // Speed when moving forward
+let backwardSpeed = 0.25; // Speed when moving backward
+const followSpeed = 0.05; // Adjust the speed for following the character
+let isMoving = false;
+let decelerationRate = 0.99; // Adjust this value to control how quickly the object slows down
+let momentum = {x: 0, z: 0}; // For deaccelerating etc
+let normFactor = 1; // Default
+
 
 const animate = () => {
     requestAnimationFrame(animate);
@@ -120,19 +106,29 @@ const animate = () => {
 
     // Determine direction and speed based on key presses
     if (movement.up) {
+        isMoving = true;
         moveZ = Math.sin(currentRotation + rotationOffset) * forwardSpeed;
         moveX = -Math.cos(currentRotation + rotationOffset) * forwardSpeed;
     } else if (movement.down) {
+        isMoving = true;
         moveZ = -Math.sin(currentRotation + rotationOffset) * backwardSpeed;
         moveX = Math.cos(currentRotation + rotationOffset) * backwardSpeed;
+    } else {
+        isMoving = false;
     }
 
-    // Update rotation based on current movement
-    updateRotation();
+    // Count the momentum for decelration.
+    momentum = updateMomentum(isMoving, momentum, moveX, moveZ, decelerationRate);
 
-    // Update rocket position and rotation
-    character.position.x += moveX;
-    character.position.z += moveZ;
+    // Update character position using momentum
+    character.position.x += momentum.x;
+    character.position.z += momentum.z;
+
+    // Update rotation based on current movement
+    normFactor = Math.sqrt(momentum.x * momentum.x + momentum.z * momentum.z) * 2;  // Max norm is 0.5 logically, so multiply by two.
+    currentRotation = updateRotation(movement, currentRotation, rotationSpeedFront*normFactor, rotationSpeedBack*normFactor);
+    
+    // Apply the updated rotation to the rocket including the offset
     character.rotation.y = currentRotation + rotationOffset;
 
     // Calculate the desired position of the camera
