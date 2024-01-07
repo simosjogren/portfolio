@@ -6,7 +6,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 // import { createSimpleCharacter } from './characterObject/makeCharacter.js'
 import { createRocket } from './characterObject/makeRocket.js'
 import { helpAxes } from './devTools/helpingAxes.js';
-import { initializeMovementController, updateMomentum, updateRotation } from './characterObject/characterMovement.js'
+import { initializeMovementController, updateMomentum, updateRotation, countSpeed } from './characterObject/characterMovement.js'
 
 import { createEducationObject } from './sectionObjects/educationObject.js'
 import { createPersonalityObject } from './sectionObjects/personalityObject.js'
@@ -85,17 +85,23 @@ window.onload = initControlPanel(movement);
 
 const beginningRotation = 0;
 let currentRotation = beginningRotation; // Current rotation of the rocket in radians
-let rotationSpeedFront = 0.05;
-let rotationSpeedBack = 0.025;
+let rotationSpeedFront = 0.03;
+let rotationSpeedBack = 0.0125;
 let rotationOffset = -Math.PI / 2; // Offset for the initial rocket orientation
-let forwardSpeed = 0.5; // Speed when moving forward
-let backwardSpeed = 0.25; // Speed when moving backward
-const followSpeed = 0.05; // Adjust the speed for following the character
+let forwardSpeed = 0.45; // Speed when moving forward
+const followSpeed = 0.075; // Adjust the speed for following the character with camera
 let isMoving = false;
 let decelerationRate = 0.99; // Adjust this value to control how quickly the object slows down
 let momentum = {x: 0, z: 0}; // For deaccelerating etc
 let normFactor = 1; // Default
+const accelerationRate = 0.025; // Adjust as needed
+const maxFantasySpeed = 500; // Lets make a fantasy speed for our object and scale everything to it.
 
+let currentSpeed = 0;   // Default
+// Update the speedmeter in the window.
+setInterval(() => {
+    document.getElementById('currentSpeed').textContent = currentSpeed;
+}, 10);
 
 const animate = () => {
     requestAnimationFrame(animate);
@@ -113,7 +119,9 @@ const animate = () => {
     }
 
     // Count the momentum for decelration.
-    momentum = updateMomentum(isMoving, momentum, moveX, moveZ, decelerationRate);
+    momentum = updateMomentum(isMoving, momentum, moveX, moveZ, decelerationRate, accelerationRate, forwardSpeed);
+
+    currentSpeed = countSpeed(momentum, forwardSpeed, maxFantasySpeed);
 
     // Update character position using momentum
     character.position.x += momentum.x;
