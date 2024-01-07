@@ -76,7 +76,6 @@ const init = () => {
 
 const movement = {
     up: false,
-    down: false,
     left: false,
     right: false
 };
@@ -109,10 +108,6 @@ const animate = () => {
         isMoving = true;
         moveZ = Math.sin(currentRotation + rotationOffset) * forwardSpeed;
         moveX = -Math.cos(currentRotation + rotationOffset) * forwardSpeed;
-    } else if (movement.down) {
-        isMoving = true;
-        moveZ = -Math.sin(currentRotation + rotationOffset) * backwardSpeed;
-        moveX = Math.cos(currentRotation + rotationOffset) * backwardSpeed;
     } else {
         isMoving = false;
     }

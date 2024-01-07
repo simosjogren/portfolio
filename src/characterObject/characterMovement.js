@@ -10,10 +10,6 @@ export function initializeMovementController(movement) {
             case 'ArrowUp':
                 movement.up = true;
                 break;
-            case 's':
-            case 'ArrowDown':
-                movement.down = true;
-                break;
             case 'a':
             case 'ArrowLeft':
                 movement.left = true;
@@ -30,10 +26,6 @@ export function initializeMovementController(movement) {
             case 'w':
             case 'ArrowUp':
                 movement.up = false;
-                break;
-            case 's':
-            case 'ArrowDown':
-                movement.down = false;
                 break;
             case 'a':
             case 'ArrowLeft':
