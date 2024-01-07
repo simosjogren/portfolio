@@ -13,6 +13,7 @@ import { createPersonalityObject } from './sectionObjects/personalityObject.js'
 import { createGithubExperienceObject } from './sectionObjects/githubExperienceObject.js'
 import { createWorkExperienceObject } from './sectionObjects/workExperienceObject.js'
 import { initControlPanel, toggleControlPanel } from './platformSettings/mobileSettings.js';
+import { checkForEntry } from './sectionObjects/tools/collisionFunctions.js'
 
 // Event listener for the toggle button
 document.getElementById('toggleControls').addEventListener('click', toggleControlPanel);
@@ -28,6 +29,13 @@ const cameraOffset = {
 
 // Basic scene setup
 let scene, camera, renderer, character, controls;
+
+const positions = {
+    "education": { x: 40, y: 0, z: 0 },  // East
+    "githubExperience": { x: 0, y: 0, z: 40 },  // North
+    "workExperience": { x: -40, y: 0, z: 0 }, // West
+    "personality": { x: 0, y: 0, z: -40 }  // South
+};
 
 const init = () => {
     // Creating a scene
@@ -51,13 +59,6 @@ const init = () => {
 
     // Initialize the character's movement
     initializeMovementController(movement);
-
-    const positions = {
-        "education": { x: 40, y: 0, z: 0 },  // East
-        "githubExperience": { x: 0, y: 0, z: 40 },  // North
-        "workExperience": { x: -40, y: 0, z: 0 }, // West
-        "personality": { x: 0, y: 0, z: -40 }  // South
-    };
 
     // Create portfolio elements.
     createEducationObject(scene, positions["education"], IS_DEBUG_MODE);
@@ -103,6 +104,8 @@ setInterval(() => {
     document.getElementById('currentSpeed').textContent = currentSpeed;
 }, 10);
 
+let insideCircle = false;
+
 const animate = () => {
     requestAnimationFrame(animate);
 
@@ -118,8 +121,18 @@ const animate = () => {
         isMoving = false;
     }
 
-    // Count the momentum for decelration.
+    // Count the current momentum for acceleration and deceleration.
     momentum = updateMomentum(isMoving, momentum, moveX, moveZ, decelerationRate, accelerationRate, forwardSpeed);
+
+    // Check collisions between character and with any portfolio-object coordinates.
+    for (let key in positions) {
+        if (positions.hasOwnProperty(key)) {  // Check if the key is a direct property of the object
+            let coordinates = positions[key];
+            if (checkForEntry(character.position, coordinates, key, 10)) {
+                console.log('Inside', key);
+            }
+        }
+    }
 
     currentSpeed = countSpeed(momentum, forwardSpeed, maxFantasySpeed);
 
