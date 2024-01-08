@@ -16,6 +16,9 @@ export function initControlPanel(movement) {
           movement.left = false;
           movement.right = false;
           break;
+        case 'btnCntrlD':
+          movement.down = state;
+          break;
         case 'btnCntrlL':
           movement.left = state;
           movement.up = state;
@@ -27,15 +30,6 @@ export function initControlPanel(movement) {
       }
       controls[control] = state;
     }
-
-      // Function to reset all movement
-    function resetMovement() {
-      movement.up = false;
-    }
-
-    // Add event listeners for the reset button
-    document.getElementById('btnReset').addEventListener('mousedown', resetMovement);
-    document.getElementById('btnReset').addEventListener('touchstart', resetMovement);
   
     // Add event listeners for each button
     document.getElementById('btnCntrlU').addEventListener('mousedown', () => setControlState('btnCntrlU', true));
@@ -52,6 +46,11 @@ export function initControlPanel(movement) {
     document.getElementById('btnCntrlR').addEventListener('mouseup', () => setControlState('btnCntrlR', false));
     document.getElementById('btnCntrlR').addEventListener('touchstart', () => setControlState('btnCntrlR', true));
     document.getElementById('btnCntrlR').addEventListener('touchend', () => setControlState('btnCntrlR', false));
+
+    document.getElementById('btnCntrlD').addEventListener('mousedown', () => setControlState('btnCntrlD', true));
+    document.getElementById('btnCntrlD').addEventListener('mouseup', () => setControlState('btnCntrlD', false));
+    document.getElementById('btnCntrlD').addEventListener('touchstart', () => setControlState('btnCntrlD', true));
+    document.getElementById('btnCntrlD').addEventListener('touchend', () => setControlState('btnCntrlD', false));
 }
 
 // Function to toggle the visibility of the control panel

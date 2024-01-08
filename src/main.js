@@ -19,7 +19,22 @@ import { checkForEntry } from './sectionObjects/tools/collisionFunctions.js'
 document.getElementById('toggleControls').addEventListener('click', toggleControlPanel);
 document.getElementById('ctrlBtnArea').style.display = 'none';  // Lets hide it by default.
 
-const IS_DEBUG_MODE = true;
+const IS_DEBUG_MODE = true; // When true, we animate certain helping grids and axes.
+const beginningRotation = 0;
+let currentRotation = beginningRotation; // Current rotation of the rocket in radians
+let rotationOffset = -Math.PI / 2; // Offset for the initial rocket orientation
+let rotationSpeedFront = 0.03;  // TODO: make the major speed.
+let rotationSpeedBack = 0.0125; // TODO: check if needed anymore
+let forwardSpeed = 0.45; // Maximum speed when moving forward
+const followSpeed = 0.075; // Speed for following the character with camera
+let isMoving = false;   // Practically tells if the up-key is pressed and rocket is speeding.
+let defaultDecelerationRate = 0.99; // How quickly the object slows down naturally
+let slowerDecelerationRate = 0.96;  // How quickly the object slows down forcedly.
+const accelerationRate = 0.025; // Acceleration speed.
+let momentum = {x: 0, z: 0}; // Physical momentum
+let normFactor = 1; // Default value. Normalized scalar between 0 and 1 which adjusts the speed of character rotation.
+const maxFantasySpeed = 500; // For showing purposes, scales the "speed" of the rocket according to this.
+let currentSpeed = 0;   // Default value.
 
 const cameraOffset = {
     x: 0,
@@ -77,6 +92,7 @@ const init = () => {
 
 const movement = {
     up: false,
+    down: false,
     left: false,
     right: false
 };
@@ -84,39 +100,25 @@ const movement = {
 // Initialize the control panel when the page loads
 window.onload = initControlPanel(movement);
 
-const beginningRotation = 0;
-let currentRotation = beginningRotation; // Current rotation of the rocket in radians
-let rotationSpeedFront = 0.03;
-let rotationSpeedBack = 0.0125;
-let rotationOffset = -Math.PI / 2; // Offset for the initial rocket orientation
-let forwardSpeed = 0.45; // Speed when moving forward
-const followSpeed = 0.075; // Adjust the speed for following the character with camera
-let isMoving = false;
-let decelerationRate = 0.99; // Adjust this value to control how quickly the object slows down
-let momentum = {x: 0, z: 0}; // For deaccelerating etc
-let normFactor = 1; // Default
-const accelerationRate = 0.025; // Adjust as needed
-const maxFantasySpeed = 500; // Lets make a fantasy speed for our object and scale everything to it.
-
-let currentSpeed = 0;   // Default
 // Update the speedmeter in the window.
 setInterval(() => {
     document.getElementById('currentSpeed').textContent = currentSpeed;
 }, 10);
-
-let insideCircle = false;
 
 const animate = () => {
     requestAnimationFrame(animate);
 
     let moveX = 0;
     let moveZ = 0;
+    let decelerationRate = defaultDecelerationRate; // 'Automatic' stopping speed
 
     // Determine direction and speed based on key presses
     if (movement.up) {
         isMoving = true;
         moveZ = Math.sin(currentRotation + rotationOffset) * forwardSpeed;
         moveX = -Math.cos(currentRotation + rotationOffset) * forwardSpeed;
+    } else if (movement.down){
+        decelerationRate = slowerDecelerationRate   // We add faster deceleration if S-key is pressed.
     } else {
         isMoving = false;
     }
@@ -129,7 +131,10 @@ const animate = () => {
         if (positions.hasOwnProperty(key)) {  // Check if the key is a direct property of the object
             let coordinates = positions[key];
             if (checkForEntry(character.position, coordinates, key, 10)) {
-                console.log('Inside', key);
+                // Lets activate the iframe that should be, because we are inside desired circle area.
+                document.getElementById(key).classList.add('active');
+            } else {
+                document.getElementById(key).classList.remove('active');
             }
         }
     }

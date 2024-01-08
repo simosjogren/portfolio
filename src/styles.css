@@ -28,6 +28,7 @@ body {
     font-size: 1.5em; /* Adjust the size of the buttons */
     display: none; /* Initially hidden */
     text-align: center; /* Center-align the buttons */
+    z-index: 1001;
 }
 
 #ctrlBtnArea .ctrlBtn {
@@ -71,6 +72,7 @@ body {
     font-size: 1.2em;
     outline: none; /* Removes the outline on focus */
     -webkit-tap-highlight-color: transparent; /* Remove tap highlight color in Safari/Chrome */
+    z-index: 1002;
 }
 
 #toggleControls:hover {
@@ -87,4 +89,29 @@ body {
     border-radius: 10px; /* Rounded corners */
     padding: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow for depth */
+}
+
+.modelIframe {
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    visibility: hidden; /* Use visibility instead of display */
+    opacity: 0; /* Start fully transparent */
+    top: 10%;
+    left: 10%;
+    border: none;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    border-radius: 15px;
+    /* Use transition for opacity, visibility, and transform */
+    transition: opacity 0.5s, visibility 0.5s, transform 0.5s;
+    transform: scale(0.95);
+}
+
+.modelIframe.active {
+    visibility: visible; /* Make the iframe visible */
+    opacity: 0.85; /* Fade to fully visible */
+    transform: scale(1); /* Scale to normal size */
+    z-index: 1000;
 }

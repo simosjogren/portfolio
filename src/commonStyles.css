@@ -1,0 +1,49 @@
+body {
+    font-family: 'Arial', sans-serif; /* Sets a clean, modern font */
+    background-color: #f8f8f8; /* Sets a light grey background color */
+    margin: 0;
+    padding: 20px; /* Adds some padding around the content */
+    display: flex;
+    justify-content: center; /* Center the content horizontally */
+    align-items: center; /* Center the content vertically */
+    height: 100vh; /* Sets the body height to fill the viewport */
+}
+
+h1 {
+    font-size: 2.5em; /* Sets the size of the heading */
+    color: #333; /* Sets the text color to a dark grey */
+    text-transform: uppercase; /* Makes the text uppercase */
+    letter-spacing: 1.5px; /* Adds spacing between the letters */
+    text-align: center; /* Center-aligns the text */
+    margin: 0; /* Removes default margin */
+    padding: 10px 0; /* Adds padding above and below the text */
+    border-bottom: 3px solid #0056b3; /* Adds a solid blue line under the text */
+    width: fit-content; /* Ensures the border-bottom is the width of the text */
+    margin-left: auto; /* These two lines ensure the h1 is centered in the page */
+    margin-right: auto;
+}
+
+/* For Webkit browsers like Chrome, Safari, etc. */
+::-webkit-scrollbar {
+    width: 12px; /* Width of the vertical scrollbar */
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Color of the tracking area */
+    border-radius: 10px; /* Rounded corners of the track */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888; /* Color of the scroll thumb */
+    border-radius: 10px; /* Rounded corners of the thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Color of the thumb when hovered */
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: thin; /* "auto" or "thin" */
+    scrollbar-color: #888 #f1f1f1; /* thumb and track color */
+}
