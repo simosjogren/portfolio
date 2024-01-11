@@ -1,7 +1,5 @@
 // characterMovement.js
 
-import * as THREE from 'three';
-
 export function initializeMovementController(movement) {
     
     document.addEventListener('keydown', function(event) {
@@ -13,6 +11,7 @@ export function initializeMovementController(movement) {
             case 's':
             case 'ArrowDown':
                 movement.down = true;
+                break;
             case 'a':
             case 'ArrowLeft':
                 movement.left = true;
@@ -33,6 +32,7 @@ export function initializeMovementController(movement) {
             case 's':
             case 'ArrowDown':
                 movement.down = false;
+                break;
             case 'a':
             case 'ArrowLeft':
                 movement.left = false;
@@ -56,6 +56,11 @@ export const updateRotation = (movement, currentRotation, rotationSpeedFront = 0
     return currentRotation;
 };
 
+
+export const updateCircleRotation = (normalizedCircleTangent, currentRotation) => {
+    const angle = Math.atan2(normalizedCircleTangent.x, normalizedCircleTangent.z);
+    return angle;
+}
 
 export const updateMomentum = (isMoving, momentum, moveX, moveZ, decelerationRate, accelerationRate, maxForwardSpeed) => {
     if (isMoving) {
