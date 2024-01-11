@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 
-export function helpAxes(scene, axesLength=5, gridSize=100, gridDivisions=10) {
+export function helpAxes(scene, gridSize=400, axesLength=5, gridDivisions=40) {
     const axesHelper = new THREE.AxesHelper(axesLength);
     const gridHelper = new THREE.GridHelper(gridSize, gridDivisions);
     scene.add(axesHelper);

@@ -137,7 +137,7 @@ export const createRocket = () => {
     let rocket = new Rocket();
     // Adjust following values to scale the rocket
     rocket.mesh.scale.set(0.01, 0.01, 0.01);
-    rocket.mesh.position.y = 2.5;
+    rocket.mesh.position.y = 5;
     rocket.mesh.rotation.z = 90 * Math.PI / 180;  // Rotate 90 degrees in z-direction
     rocket.mesh.rotation.y = -90 * Math.PI / 180;
     return rocket.mesh;

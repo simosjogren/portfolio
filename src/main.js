@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // import { createSimpleCharacter } from './characterObject/makeCharacter.js'
-import { createRocket } from './characterObject/makeRocket.js'
+import { createRocket, createSmoke } from './characterObject/makeRocket.js'
 import { helpAxes } from './devTools/helpingAxes.js';
 import { drawVector } from './devTools/vectorHelper.js';
 import { initializeMovementController, updateMomentum, updateRotation, updateCircleRotation, countSpeed } from './characterObject/characterMovement.js'
@@ -38,6 +38,7 @@ const initialCenterMomentum = 0.05; // Momentum used when character enters to th
 let normFactor = 1; // Default value. Normalized scalar between 0 and 1 which adjusts the speed of character rotation.
 const maxFantasySpeed = 10; // For showing purposes, scales the "speed" of the rocket according to this.
 let currentSpeed = 0;   // Default value.
+const maxBoundary = 150;
 
 let isCircleRotating = false; // State to track if character is rotating around the circle
 let insideObject = '';  // Tells that what is the circle that we are currently in.
@@ -59,10 +60,10 @@ const circleRotationOffset = {
 let scene, camera, renderer, character, controls;
 
 const positions = {
-    "education": { x: 40, y: 0, z: 0 },  // East
-    "githubExperience": { x: 0, y: 0, z: 40 },  // North
-    "workExperience": { x: -40, y: 0, z: 0 }, // West
-    "personality": { x: 0, y: 0, z: -40 }  // South
+    "education": { x: 40, y: 5, z: 0 },  // East
+    "githubExperience": { x: 0, y: 5, z: 40 },  // North
+    "workExperience": { x: -40, y: 5, z: 0 }, // West
+    "personality": { x: 0, y: 5, z: -40 }  // South
 };
 
 const init = () => {
@@ -95,12 +96,34 @@ const init = () => {
     createPersonalityObject(scene, positions["personality"], IS_DEBUG_MODE);
 
     // Insert light source
-    const pointLight = new THREE.PointLight(0xffffff, 100, 100);
-    pointLight.position.set(10, 10, 10); // Position the light
-    scene.add(pointLight);
+    const pointLight1 = new THREE.PointLight(0xffffff, 100000, 100000);
+    pointLight1.position.set(-200, 50, -200); // Position the light
+    scene.add(pointLight1);
+
+    // Insert light source
+    const pointLight2 = new THREE.PointLight(0xffffff, 100000, 100000);
+    pointLight2.position.set(200, 50, 200); // Position the light
+    scene.add(pointLight2);
+
+    // Texture loader
+    const loader = new THREE.CubeTextureLoader();
+    loader.setPath('./textures/'); // Set this to the path of your downloaded skybox texture
+
+    // Load the skybox textures
+    const textureCube = loader.load([
+        'bkg1_right.png', // Right side
+        'bkg1_left.png',  // Left side
+        'bkg1_top.png',   // Top side
+        'bkg1_bot.png',// Bottom side
+        'bkg1_front.png', // Front side
+        'bkg1_back.png'   // Back side
+    ]);
+
+    // Set the scene background to the loaded texture
+    scene.background = textureCube;
 
     // If its debug mode, lets draw the help axises
-    if (IS_DEBUG_MODE) helpAxes(scene);
+    if (IS_DEBUG_MODE) helpAxes(scene, maxBoundary*2);
 };
 
 const movement = {
@@ -121,6 +144,16 @@ setInterval(() => {
 
 const animate = () => {
     requestAnimationFrame(animate);
+
+    if (Math.abs(character.position.x) > maxBoundary || 
+        Math.abs(character.position.z) > maxBoundary) {
+        character.position.x = 0;
+        character.position.z = 0;
+        momentum = {x:0, z:0}
+        currentRotation = 0;
+        movement.up = false;
+        isMoving = false;
+    }
 
     let moveX = 0;
     let moveZ = 0;
