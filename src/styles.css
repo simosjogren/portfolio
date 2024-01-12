@@ -111,7 +111,7 @@ body {
 
 .modelIframe.active {
     visibility: visible; /* Make the iframe visible */
-    opacity: 0.85; /* Fade to fully visible */
+    opacity: 0.8; /* Fade to fully visible */
     transform: scale(1); /* Scale to normal size */
     z-index: 1000;
 }

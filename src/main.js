@@ -26,7 +26,7 @@ const IS_DEBUG_MODE = true; // When true, we animate certain helping grids and a
 const beginningRotation = 0;
 let currentRotation = beginningRotation; // Current rotation of the rocket in radians
 let rotationOffset = -Math.PI / 2; // Offset for the initial rocket orientation
-let rotationSpeedFront = 0.05;  // TODO: make the major speed.
+let rotationSpeedFront = 0.035;  // TODO: make the major speed.
 let rotationSpeedBack = 0.0125; // TODO: check if needed anymore
 let forwardSpeed = 0.45; // Maximum speed when moving forward
 const followSpeed = 0.075; // Speed for following the character with camera
@@ -44,6 +44,11 @@ const maxBoundary = 150;    // Tells how long you can go before respawning to th
 
 let isCircleRotating = false; // State to track if character is rotating around the circle
 let insideObject = '';  // Tells that what is the circle that we are currently in.
+
+// Initialization and constants
+let targetRotation = 0;
+const rotationInterpolationFactor = 0.04; // Adjust for smoother or faster rotation
+
 
 const cameraOffset = {
     x: 0,
@@ -159,13 +164,14 @@ const animate = () => {
     // Count the current momentum for acceleration and deceleration.
     momentum = updateMomentum(isMoving, momentum, moveX, moveZ, decelerationRate, accelerationRate, forwardSpeed);
 
-    // Check collisions between character and with any portfolio-object coordinates.
+    // Perform the orbit motion if character is inside any circle
     for (let key in positions) {
         if (positions.hasOwnProperty(key)) {
             let coordinates = positions[key];   // Center of a circle
             let isInsideAnyCircle = checkForEntry(character.position, coordinates, key, 10);
             if (isInsideAnyCircle) {
                 currentCircleCenter = { x: coordinates.x, y: coordinates.y, z: coordinates.z };
+                // Beginning settings before the character is rotating along the circle
                 if (!isCircleRotating) {
                     insideObject = key;
                     isCircleRotating = true;
@@ -185,11 +191,18 @@ const animate = () => {
                 let circleTangent = getCircleTangent(coordinates, character.position, circleRotationDirection);
                 circleTangent.normalize();
 
-                // Lets update the circle rotation
-                currentRotation = Math.atan2(circleTangent.x, circleTangent.z);
-
-                // Lets add the 180 degrees offset
-                currentRotation = currentRotation + Math.PI;
+                // Settings when character is already rotating.
+                if (isCircleRotating) {
+                    targetRotation = Math.atan2(circleTangent.x, circleTangent.z) + Math.PI;
+                    let rotationDelta = targetRotation - currentRotation;
+                    
+                    // Ensure shortest rotation direction
+                    if (rotationDelta > Math.PI) rotationDelta -= 2 * Math.PI;
+                    if (rotationDelta < -Math.PI) rotationDelta += 2 * Math.PI;
+    
+                    // Rotate character by a fraction of the remaining angle to target
+                    currentRotation += rotationDelta * rotationInterpolationFactor;
+                }
 
                 // Move the character along the tangent direction
                 character.position.x += circleTangent.x * tangentMovementSpeed;
@@ -206,7 +219,7 @@ const animate = () => {
             }
         }
     }
-
+    
     currentSpeed = countSpeed(momentum, forwardSpeed, maxFantasySpeed);
 
     // Update character position using momentum

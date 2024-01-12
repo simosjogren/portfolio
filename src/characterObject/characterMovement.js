@@ -59,7 +59,10 @@ export const updateRotation = (movement, currentRotation, rotationSpeedFront = 0
 
 export const updateMomentum = (isMoving, momentum, moveX, moveZ, decelerationRate, accelerationRate, maxForwardSpeed) => {
     if (isMoving) {
-        // Calculate the desired change in speed
+        // Calculate the current speed
+        let currentSpeed = Math.sqrt(momentum.x * momentum.x + momentum.z * momentum.z);
+
+        // Calculate the desired change in speed using logarithmic acceleration
         let deltaSpeedX = moveX * accelerationRate;
         let deltaSpeedZ = moveZ * accelerationRate;
 
@@ -67,12 +70,11 @@ export const updateMomentum = (isMoving, momentum, moveX, moveZ, decelerationRat
         momentum.x += deltaSpeedX;
         momentum.z += deltaSpeedZ;
 
-        // Calculate the current speed (magnitude of the momentum vector)
-        let currentSpeed = Math.sqrt(momentum.x * momentum.x + momentum.z * momentum.z);
+        // Recalculate the current speed after applying acceleration
+        currentSpeed = Math.sqrt(momentum.x * momentum.x + momentum.z * momentum.z);
 
         // If the current speed exceeds the max speed, clamp it
         if (currentSpeed > maxForwardSpeed) {
-            // Normalize the momentum vector and then scale it to max speed
             momentum.x = (momentum.x / currentSpeed) * maxForwardSpeed;
             momentum.z = (momentum.z / currentSpeed) * maxForwardSpeed;
         }
@@ -81,7 +83,7 @@ export const updateMomentum = (isMoving, momentum, moveX, moveZ, decelerationRat
         momentum.x *= decelerationRate;
         momentum.z *= decelerationRate;
 
-        // Threshold to stop completely, to avoid endless tiny movements
+        // Threshold to stop completely
         if (Math.abs(momentum.x) < 0.01 && Math.abs(momentum.z) < 0.01) {
             momentum.x = 0;
             momentum.z = 0;
@@ -89,6 +91,7 @@ export const updateMomentum = (isMoving, momentum, moveX, moveZ, decelerationRat
     }
     return momentum;
 }
+
 
 
 export const applyOrbitMomentum = (coordinates, char_position, initialCenterMomentum) => {
