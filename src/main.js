@@ -7,14 +7,16 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { createRocket, createSmoke } from './characterObject/makeRocket.js'
 import { helpAxes } from './devTools/helpingAxes.js';
 import { drawVector } from './devTools/vectorHelper.js';
-import { initializeMovementController, updateMomentum, updateRotation, updateCircleRotation, countSpeed } from './characterObject/characterMovement.js'
+import { initializeMovementController, updateMomentum, updateRotation, countSpeed, applyOrbitMomentum } from './characterObject/characterMovement.js'
 
 import { createEducationObject } from './sectionObjects/educationObject.js'
 import { createPersonalityObject } from './sectionObjects/personalityObject.js'
 import { createGithubExperienceObject } from './sectionObjects/githubExperienceObject.js'
 import { createWorkExperienceObject } from './sectionObjects/workExperienceObject.js'
 import { initControlPanel, toggleControlPanel } from './platformSettings/mobileSettings.js';
-import { checkForEntry, getCircleTangent } from './sectionObjects/tools/collisionFunctions.js'
+import { checkForEntry, getCharacterEnteringDirection, getCircleTangent } from './sectionObjects/tools/collisionFunctions.js'
+import { loadSkyboxTexture } from './platformSettings/textureLoaders.js';
+import { addPointLights } from './platformSettings/lightningSettings.js';
 
 // Event listener for the toggle button
 document.getElementById('toggleControls').addEventListener('click', toggleControlPanel);
@@ -34,11 +36,11 @@ let defaultDecelerationRate = 0.99; // How quickly the object slows down natural
 let slowerDecelerationRate = 0.96;  // How quickly the object slows down forcedly.
 const accelerationRate = 0.025; // Acceleration speed.
 let momentum = {x: 0, z: 0}; // Physical momentum
-const initialCenterMomentum = 0.05; // Momentum used when character enters to the circle area of sectionObject.
+const initialCenterMomentum = 0.03; // Momentum used when character enters to the circle area of sectionObject.
 let normFactor = 1; // Default value. Normalized scalar between 0 and 1 which adjusts the speed of character rotation.
 const maxFantasySpeed = 10; // For showing purposes, scales the "speed" of the rocket according to this.
 let currentSpeed = 0;   // Default value.
-const maxBoundary = 150;
+const maxBoundary = 150;    // Tells how long you can go before respawning to the center.
 
 let isCircleRotating = false; // State to track if character is rotating around the circle
 let insideObject = '';  // Tells that what is the circle that we are currently in.
@@ -95,32 +97,11 @@ const init = () => {
     createWorkExperienceObject(scene, positions["workExperience"], IS_DEBUG_MODE);
     createPersonalityObject(scene, positions["personality"], IS_DEBUG_MODE);
 
-    // Insert light source
-    const pointLight1 = new THREE.PointLight(0xffffff, 100000, 100000);
-    pointLight1.position.set(-200, 50, -200); // Position the light
-    scene.add(pointLight1);
-
-    // Insert light source
-    const pointLight2 = new THREE.PointLight(0xffffff, 100000, 100000);
-    pointLight2.position.set(200, 50, 200); // Position the light
-    scene.add(pointLight2);
-
-    // Texture loader
-    const loader = new THREE.CubeTextureLoader();
-    loader.setPath('./textures/'); // Set this to the path of your downloaded skybox texture
-
-    // Load the skybox textures
-    const textureCube = loader.load([
-        'bkg1_right.png', // Right side
-        'bkg1_left.png',  // Left side
-        'bkg1_top.png',   // Top side
-        'bkg1_bot.png',// Bottom side
-        'bkg1_front.png', // Front side
-        'bkg1_back.png'   // Back side
-    ]);
+    // Add realistic-looking lightning
+    scene = addPointLights(scene);
 
     // Set the scene background to the loaded texture
-    scene.background = textureCube;
+    scene.background = loadSkyboxTexture();
 
     // If its debug mode, lets draw the help axises
     if (IS_DEBUG_MODE) helpAxes(scene, maxBoundary*2);
@@ -142,9 +123,14 @@ setInterval(() => {
 }, 10);
 
 
+let circleRotationDirection = 'clockwise';
+
 const animate = () => {
     requestAnimationFrame(animate);
 
+    // console.log(character.position);
+
+    // Investigation if the character is inside the borders.
     if (Math.abs(character.position.x) > maxBoundary || 
         Math.abs(character.position.z) > maxBoundary) {
         character.position.x = 0;
@@ -176,53 +162,43 @@ const animate = () => {
     // Check collisions between character and with any portfolio-object coordinates.
     for (let key in positions) {
         if (positions.hasOwnProperty(key)) {
-            let coordinates = positions[key];
-            let circleValues = checkForEntry(character.position, coordinates, key, 10);
-            let adjustmentFactor = circleValues[1];
-
-            if (circleValues[0]) {
-                isInsideAnyCircle = true;
+            let coordinates = positions[key];   // Center of a circle
+            let isInsideAnyCircle = checkForEntry(character.position, coordinates, key, 10);
+            if (isInsideAnyCircle) {
                 currentCircleCenter = { x: coordinates.x, y: coordinates.y, z: coordinates.z };
-            }
-
-            if (circleValues[0]) {
                 if (!isCircleRotating) {
-                    // console.log("First time entering", key);
                     insideObject = key;
                     isCircleRotating = true;
 
-                    // Disable current moving.
+                    // Disable all current moving.
                     movement.up = false;
                     isMoving = false;
-                    momentum = {x:0, z:0};
 
-                    // Calculate direction towards circle center
-                    const toCenterX = coordinates.x - character.position.x;
-                    const toCenterZ = coordinates.z - character.position.z;
+                    // Gets the angle that the character enters the orbit and turns the character to that direction.
+                    circleRotationDirection = getCharacterEnteringDirection(character, coordinates);
 
-                    // Normalize this direction
-                    const toCenterLength = Math.sqrt(toCenterX * toCenterX + toCenterZ * toCenterZ);
-                    const normalizedToCenterX = toCenterX / toCenterLength;
-                    const normalizedToCenterZ = toCenterZ / toCenterLength;
-
-                    // Apply a small initial momentum towards the circle center
-                    momentum.x += normalizedToCenterX * initialCenterMomentum;
-                    momentum.z += normalizedToCenterZ * initialCenterMomentum;
+                    // Applying the initial momentum to move the character clearly inside the orbit.
+                    momentum = applyOrbitMomentum(coordinates, character.position, initialCenterMomentum);
                 }
 
                 // Calculate and normalize the tangent vector only when at the border
-                if (adjustmentFactor === 0) {
-                    let circleTangent = getCircleTangent(coordinates, character.position, 'clockwise');
-                    circleTangent.normalize();
-                    currentRotation = updateCircleRotation(circleTangent, currentRotation) + Math.PI;
+                let circleTangent = getCircleTangent(coordinates, character.position, circleRotationDirection);
+                circleTangent.normalize();
 
-                    // Move the character along the tangent direction
-                    character.position.x += circleTangent.x * tangentMovementSpeed;
-                    character.position.z += circleTangent.z * tangentMovementSpeed;
-                }
+                // Lets update the circle rotation
+                currentRotation = Math.atan2(circleTangent.x, circleTangent.z);
 
+                // Lets add the 180 degrees offset
+                currentRotation = currentRotation + Math.PI;
+
+                // Move the character along the tangent direction
+                character.position.x += circleTangent.x * tangentMovementSpeed;
+                character.position.z += circleTangent.z * tangentMovementSpeed;
+
+                // Lets bring the current iframe element to the screen
                 document.getElementById(key).classList.add('active');
             } else {
+                // Not collision, lets keep the iframe still hided.
                 document.getElementById(key).classList.remove('active');
                 if (insideObject === key) {
                     isCircleRotating = false;

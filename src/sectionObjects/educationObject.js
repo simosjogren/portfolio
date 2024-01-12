@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { TextureLoader } from 'three';
 
 import { helpSectionObjectCircle } from "../devTools/helpingAxes.js";
-import { addPointLight } from "./tools/lightningSettings.js"
+import { addPointLight } from "./tools/sectionObjectPointLight.js"
 
 export const createEducationObject = (scene, position, IS_DEBUG_MODE=false, color=0xff0000) => {
     // Create a square geometry

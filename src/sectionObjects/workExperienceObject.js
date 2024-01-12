@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { helpSectionObjectCircle } from "../devTools/helpingAxes.js";
-import { addPointLight } from "./tools/lightningSettings.js"
+import { addPointLight } from "./tools/sectionObjectPointLight.js"
 
 // Function to create a square with grid-circle
 export const createWorkExperienceObject = (scene, position, IS_DEBUG_MODE=false, color=0xffff00) => {

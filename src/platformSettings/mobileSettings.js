@@ -1,4 +1,4 @@
-
+// mobilesettings.js
 
 export function initControlPanel(movement) {
     const controls = {

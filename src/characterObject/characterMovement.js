@@ -57,11 +57,6 @@ export const updateRotation = (movement, currentRotation, rotationSpeedFront = 0
 };
 
 
-export const updateCircleRotation = (normalizedCircleTangent, currentRotation) => {
-    const angle = Math.atan2(normalizedCircleTangent.x, normalizedCircleTangent.z);
-    return angle;
-}
-
 export const updateMomentum = (isMoving, momentum, moveX, moveZ, decelerationRate, accelerationRate, maxForwardSpeed) => {
     if (isMoving) {
         // Calculate the desired change in speed
@@ -92,6 +87,27 @@ export const updateMomentum = (isMoving, momentum, moveX, moveZ, decelerationRat
             momentum.z = 0;
         }
     }
+    return momentum;
+}
+
+
+export const applyOrbitMomentum = (coordinates, char_position, initialCenterMomentum) => {
+    // Starting the momentum from zero.
+    let momentum = {x:0, z:0};
+    
+    // Calculate direction towards circle center
+    const toCenterX = coordinates.x - char_position.x;
+    const toCenterZ = coordinates.z - char_position.z;
+
+    // Normalize this direction
+    const toCenterLength = Math.sqrt(toCenterX * toCenterX + toCenterZ * toCenterZ);
+    const normalizedToCenterX = toCenterX / toCenterLength;
+    const normalizedToCenterZ = toCenterZ / toCenterLength;
+
+    // Apply a small initial momentum towards the circle center
+    momentum.x += normalizedToCenterX * initialCenterMomentum;
+    momentum.z += normalizedToCenterZ * initialCenterMomentum;
+
     return momentum;
 }
 
